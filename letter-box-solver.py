@@ -3,7 +3,9 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 # user input of possible letters
-possible_letters = "klmjrbucnpoa"
+sides = ["smh", 'ouy','tbd', 'aei']
+possible_letters = "smhouydbtiea"
+number_of_word_to_solve_in = 4
 
 def load_words():
     with open('words_alpha.txt') as word_file:
@@ -57,9 +59,30 @@ def FindPossibleWordsFromDict(dictionary, possible_letter_list: dict):
     logging.debug(possible_english_words)
     return possible_english_words
 
+def IsWordPossibleSide(word: str, side: str) -> bool:
+    logging.debug(f"The word is {word} and side is {side}")
+    for i in range(0, len(word) - 1):
+        current_letter = word[i]
+        if i < len(word) - 1:
+            next_letter = word[i+1]
+        if current_letter in side and next_letter in side:
+            logging.debug(f"The word {word} is not possible given the side {side}")
+            return False
+    return True
+
+def RemoveImpossibleWordsbySide(words: str, sides: str) -> list:
+    for word in reversed(words):
+        for side in sides:
+            if(not IsWordPossibleSide(word, side)): 
+                logging.debug(f"remove {word}")
+                possible_english_words.remove(word)
+                break
+    return words
+
 english_words = load_words()
 possible_letter_list = LettersInWord(possible_letters)
 
 possible_english_words = FindPossibleWordsFromDict(english_words, possible_letter_list)
+possible_english_words = RemoveImpossibleWordsbySide(possible_english_words, sides)
 
-print(possible_english_words)
+logging.info(sorted(possible_english_words))

@@ -275062,14 +275062,11 @@ rozener
 rozum
 rozzer
 rozzers
-rpm
 rps
 rpt
 rrhiza
-rs
 rsum
 rsvp
-rt
 rte
 rti
 rtw
@@ -355239,8 +355236,6 @@ upwreathe
 upwrench
 upwring
 upwrought
-ur
-ura
 urachal
 urachovesical
 urachus
