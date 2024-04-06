@@ -86,3 +86,30 @@ possible_english_words = FindPossibleWordsFromDict(english_words, possible_lette
 possible_english_words = RemoveImpossibleWordsbySide(possible_english_words, sides)
 
 logging.info(sorted(possible_english_words))
+
+a = ["kevin", 'niakds', 'sjkasdjf', 'side', 'emote', 'elotts']
+# a = ["kevin", 'niakds', 'zjkasdjf', 'zide']
+
+def recursion(start_word: str, input_list: list, chain_list: list) -> list:
+    if input_list == []:
+        return
+    
+    input_list.remove(start_word)
+    chain_list.append(start_word)
+    
+    new_list = [x for x in input_list if x[0] == start_word[-1]]
+    logger.debug(f"new_list: {new_list}")
+
+    if new_list == []:
+        logger.debug("no more words")
+        logger.info(f"chain_list: {chain_list}") # save this list
+        return 
+
+    for word in new_list:
+        logger.debug(f"recusion with {word}, input_list: {input_list}")
+        recursion(word, input_list, chain_list)
+        chain_list.pop()
+
+recursion('kevin', a, [])
+
+# recursion('thumbs', possible_english_words, [])
