@@ -9,14 +9,8 @@ possible_letters = "".join(sides)
 number_of_word_to_solve_in = 4
 
 def load_words():
-    with open('words_alpha.txt') as word_file:
+    with open('curated_words_alpha.txt') as word_file:
         valid_words = set(word_file.read().split())
-    valid_words.remove("eau")
-    valid_words.remove("eral")
-    valid_words.remove("erin")
-    valid_words.remove("encl")
-    valid_words.remove("refling")
-
     return valid_words
 
 def get_letters_in_word(word: str) -> dict:
