@@ -1,11 +1,11 @@
 import logging
 from operator import itemgetter
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 # user input of possible letters
 sides = ["smh", 'ouy','tbd', 'aei']
-possible_letters = "smhouydbtiea"
+possible_letters = "".join(sides)
 number_of_word_to_solve_in = 4
 
 def load_words():
@@ -13,7 +13,7 @@ def load_words():
         valid_words = set(word_file.read().split())
     return valid_words
 
-def LettersInWord(word):
+def LettersInWord(word: str) -> dict:
     letter_list = {}
     for char in set(word):
         letter_list[char]=word.count(char)
@@ -88,34 +88,55 @@ def RemoveImpossibleWordsbySide(words: str, sides: str) -> list:
 
 # logging.info(sorted(possible_english_words))
 
-a = ["kevin", 'niakds', 'sjkasdjf', 'side', 'emote', 'elotts']
-# a = ["kevin", 'niakds', 'zjkasdjf', 'zide']
-
-def recursion(max_chain_words: int, start_word: str, input_list: list, chain_list: list, sequences: list):
+def recursion(max_chain_words: int, match_letters: dict, start_word: str, input_list: list, chain_list: list, sequences: list):
+    # list has been exhausted; return
     if input_list == []:
         return
     
-    input_list.remove(start_word)
+    logger.debug(f"removing start_word: {start_word}")
+    if start_word in input_list:
+        input_list.remove(start_word)
+
+    logger.debug(f"appending start_word to chain_list: {start_word}")
     chain_list.append(start_word)
 
-    if len(chain_list) >= max_chain_words:
-        logger.info(f"chain_list: {chain_list}") # save this list
+    # case when chain_list is completed early ie has all necessary letters
+    if (is_sequence_complete(chain_list, match_letters)):
+        logger.debug(f"chain list completed early; chain list complete: {chain_list}")
         sequences.append(chain_list[:])
         return
+
+    # max amount of words has been reached; 
+    # check if sequence is complete ie contains all the necessary letters
+    # if complete, add current sequence chain
+    if len(chain_list) >= max_chain_words:
+        if (is_sequence_complete(chain_list, match_letters)):
+            logger.debug(f"reached max chain words; chain list complete: {chain_list}")
+            sequences.append(chain_list[:])
+        else:
+            logger.debug(f"reached max chain words; chain list NOT complete: {chain_list}")
+        return
     
+    # find all matches with the last letter of start_word and the first letter of the remainder input_list
     new_list = [x for x in input_list if x[0] == start_word[-1]]
     logger.debug(f"new_list: {new_list}")
 
+    # no more match end to start letter matches
+    # check if sequence is complete ie contains all the necessary letters
+    # if complete, add current sequence chain
     if new_list == []:
-        logger.debug("no more words")
-        logger.info(f"chain_list: {chain_list}") # save this list
-        sequences.append(chain_list[:])
+        if (is_sequence_complete(chain_list, match_letters)):
+            logger.debug(f"no more words in new_list; chain list complete: {chain_list}")
+            sequences.append(chain_list[:])
+        else:
+            logger.debug(f"no more words in new_list; chain_list is NOT complete: {chain_list}")
         return
 
     for word in new_list:
         logger.debug(f"recusion with {word}, input_list: {input_list}")
-        recursion(max_chain_words, word, input_list, chain_list, sequences)
-        chain_list.pop()
+        recursion(max_chain_words, match_letters, word, input_list, chain_list, sequences)
+        if len(chain_list) > 0:
+            chain_list.pop() # remove last word in chain as that word is now done.
 
     return
 
@@ -137,15 +158,34 @@ def delete_word_from_dict(word: str, list: list):
             del list[i]
             break
 
+def is_sequence_complete(sequence: list, match_letter_list: dict) -> bool:
+    sequence_letter_list = LettersInWord("".join(sequence))
+    common_keys = filter(lambda x: x in sequence_letter_list, match_letter_list)
+    key_count = 0
+    for key in common_keys:
+        key_count += 1
+
+    if key_count == len(match_letter_list):
+        return True
+    else:
+        return False
+
 # created a function just in case we want to create a more complex sorting function
-def sort_rank_from_dict(list: list) -> list:
-    return sorted(ranked_words, key=itemgetter('rank'), reverse=True)
+def sort_rank_from_dict(mlist: list) -> list:
+    return sorted(mlist, key=itemgetter('rank'), reverse=True)
 
+a = ["kevin", 'niakds', 'sjkasdjf', 'side', 'emote', 'elotts', 'sink']
+# a = ["kevin", 'niakds', 'zjkasdjf', 'zide']
 sequences = []
-recursion(4, 'kevin', a, [], sequences)
+match_letters = LettersInWord('poekn')
+recursion(5, match_letters, 'kevin', a, [], sequences)
 
-for sequence in sequences:
-    print(sequence)
+if sequences == []:
+    logger.info("no sequences found that has all match_letters")
+else:
+    logger.info("Sequnces found:")
+    for sequence in sequences:
+        logger.info(sequence)
 
 # recursion('thumbs', possible_english_words, [])
 # ranked_words = rank_words('knfd', a)
