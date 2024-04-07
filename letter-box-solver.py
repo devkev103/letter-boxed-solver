@@ -1,4 +1,5 @@
 import logging
+from operator import itemgetter
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
@@ -79,23 +80,27 @@ def RemoveImpossibleWordsbySide(words: str, sides: str) -> list:
                 break
     return words
 
-english_words = load_words()
-possible_letter_list = LettersInWord(possible_letters)
+# english_words = load_words()
+# possible_letter_list = LettersInWord(possible_letters)
 
-possible_english_words = FindPossibleWordsFromDict(english_words, possible_letter_list)
-possible_english_words = RemoveImpossibleWordsbySide(possible_english_words, sides)
+# possible_english_words = FindPossibleWordsFromDict(english_words, possible_letter_list)
+# possible_english_words = RemoveImpossibleWordsbySide(possible_english_words, sides)
 
-logging.info(sorted(possible_english_words))
+# logging.info(sorted(possible_english_words))
 
 a = ["kevin", 'niakds', 'sjkasdjf', 'side', 'emote', 'elotts']
 # a = ["kevin", 'niakds', 'zjkasdjf', 'zide']
 
-def recursion(start_word: str, input_list: list, chain_list: list) -> list:
+def recursion(max_chain_words: int, start_word: str, input_list: list, chain_list: list) -> list:
     if input_list == []:
         return
     
     input_list.remove(start_word)
     chain_list.append(start_word)
+
+    if len(chain_list) >= max_chain_words:
+        logger.info(f"chain_list: {chain_list}") # save this list
+        return
     
     new_list = [x for x in input_list if x[0] == start_word[-1]]
     logger.debug(f"new_list: {new_list}")
@@ -107,9 +112,38 @@ def recursion(start_word: str, input_list: list, chain_list: list) -> list:
 
     for word in new_list:
         logger.debug(f"recusion with {word}, input_list: {input_list}")
-        recursion(word, input_list, chain_list)
+        recursion(max_chain_words, word, input_list, chain_list)
         chain_list.pop()
 
-recursion('kevin', a, [])
+def rank_words(possible_letters: str, words: list) -> list:
+    possible_letter_list = LettersInWord(possible_letters)
+    ranked_words = []
+    for word in words:
+        word_letter_list = LettersInWord(word)
+        common_keys = filter(lambda x: x in word_letter_list, possible_letter_list)
+        key_count = 0
+        for key in common_keys:
+            key_count += 1
+        ranked_words.append({"word": word, "rank": key_count})
+    return ranked_words
+
+def delete_word_from_dict(word: str, list: list):
+    for i in range(len(list)):
+        if list[i]['word'] == word:
+            del list[i]
+            break
+
+# created a function just in case we want to create a more complex sorting function
+def sort_rank_from_dict(list: list) -> list:
+    return sorted(ranked_words, key=itemgetter('rank'), reverse=True)
+
+
+# recursion(4, 'kevin', a, [])
 
 # recursion('thumbs', possible_english_words, [])
+ranked_words = rank_words('knfd', a)
+print(ranked_words)
+delete_word_from_dict('side', ranked_words)
+# delete_word_from_dict('emote', ranked_words)
+print(ranked_words)
+print(sort_rank_from_dict(ranked_words))
