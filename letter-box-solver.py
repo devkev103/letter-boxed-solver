@@ -9,7 +9,7 @@ possible_letters = "".join(sides)
 number_of_word_to_solve_in = 4
 
 def load_words():
-    with open('curated_words_alpha.txt') as word_file:
+    with open('curated_words.txt') as word_file:
         valid_words = set(word_file.read().split())
     return valid_words
 
@@ -86,7 +86,8 @@ possible_letter_list = get_letters_in_word(possible_letters)
 possible_english_words = FindPossibleWordsFromDict(english_words, possible_letter_list)
 possible_english_words = RemoveImpossibleWordsbySide(possible_english_words, sides)
 
-logging.info(sorted(possible_english_words))
+# logging.info(sorted(possible_english_words))
+
 
 def find_all_sequences_recursion(max_chain_words: int, match_letters: dict, start_word: str, input_list: dict, chain_list: list, sequences: list):
     # list has been exhausted; return
@@ -114,13 +115,15 @@ def find_all_sequences_recursion(max_chain_words: int, match_letters: dict, star
             logger.debug(f"reached max chain words; chain list complete: {chain_list}")
             sequences.append(chain_list[:])
         else:
-            logger.info(f"reached max chain words; chain list NOT complete: {chain_list}")
+            logger.debug(f"reached max chain words; chain list NOT complete: {chain_list}")
         return
     
     # find all matches with the last letter of start_word (start_word[-1])
     # and the first letter of the remainder input_list (x['word'][0])
     # new_list = [x for x in word_bank if x['word'][0]== start_word[-1]]
-    new_list = [x for x in input_list if x[0]== start_word[-1]]
+    ranks = rank_and_sort_words(match_letters, possible_english_words)
+    new_list = [x['word'] for x in ranks if x['word'][0] == start_word[-1]]
+    # new_list = [x for x in input_list if x[0]== start_word[-1]]
     logger.debug(f"new_list: {new_list}")
 
     # no more match end to start letter matches
@@ -175,15 +178,29 @@ def is_sequence_complete(sequence: list, match_letter_list: dict) -> bool:
 def sort_rank_from_dict(mlist: list) -> list:
     return sorted(mlist, key=itemgetter('rank'), reverse=True)
 
+def get_unmatched_sequence_letters(match_letter_list: dict, sequnece: list) -> dict:
+    sequence_letter_list = get_letters_in_word("".join(sequnece))
+    mismatch = match_letter_list.keys() - sequence_letter_list.keys()
+    remainder = "".join(mismatch)
+    return get_letters_in_word(remainder)
+
 ## DRIVER CODE ##
 start_word = 'kevin'
 match_letters = get_letters_in_word('poekn')
-word_bank = ["kevin", 'niakds', 'sjkasdjf', 'side', 'emote', 'elotts', 'sink']
+word_bank = ["kevin", 'niakds', 'sjkasdjf', 'side', 'emote', 'elotts', 'side']
 sequences = []
 # word_bank = rank_and_sort_words(match_letters, word_bank)
 
+get_unmatched_sequence_letters(match_letters, word_bank)
+
 # for word in word_bank:
 # find_all_sequences_recursion(5, match_letters, start_word, word_bank, [], sequences)
+
+match_letters = get_letters_in_word(possible_letters)
+ranks = rank_and_sort_words(match_letters, possible_english_words)
+new_list = [x['word'] for x in ranks if x['word'][0] == start_word[-1]]
+match_letters = get_unmatched_sequence_letters(match_letters, new_list)
+print(match_letters)
 
 find_all_sequences_recursion(max_chain_words=number_of_word_to_solve_in, 
                              match_letters=possible_letters, 
