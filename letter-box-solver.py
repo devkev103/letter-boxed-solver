@@ -91,7 +91,7 @@ def RemoveImpossibleWordsbySide(words: str, sides: str) -> list:
 a = ["kevin", 'niakds', 'sjkasdjf', 'side', 'emote', 'elotts']
 # a = ["kevin", 'niakds', 'zjkasdjf', 'zide']
 
-def recursion(max_chain_words: int, start_word: str, input_list: list, chain_list: list) -> list:
+def recursion(max_chain_words: int, start_word: str, input_list: list, chain_list: list, save_list: list) -> list:
     if input_list == []:
         return
     
@@ -100,7 +100,7 @@ def recursion(max_chain_words: int, start_word: str, input_list: list, chain_lis
 
     if len(chain_list) >= max_chain_words:
         logger.info(f"chain_list: {chain_list}") # save this list
-        return
+        return chain_list[:]
     
     new_list = [x for x in input_list if x[0] == start_word[-1]]
     logger.debug(f"new_list: {new_list}")
@@ -108,12 +108,13 @@ def recursion(max_chain_words: int, start_word: str, input_list: list, chain_lis
     if new_list == []:
         logger.debug("no more words")
         logger.info(f"chain_list: {chain_list}") # save this list
-        return 
+        return chain_list[:]
 
     for word in new_list:
         logger.debug(f"recusion with {word}, input_list: {input_list}")
-        recursion(max_chain_words, word, input_list, chain_list)
+        save_list.append(recursion(max_chain_words, word, input_list, chain_list, save_list))
         chain_list.pop()
+    return save_list
 
 def rank_words(possible_letters: str, words: list) -> list:
     possible_letter_list = LettersInWord(possible_letters)
@@ -137,13 +138,16 @@ def delete_word_from_dict(word: str, list: list):
 def sort_rank_from_dict(list: list) -> list:
     return sorted(ranked_words, key=itemgetter('rank'), reverse=True)
 
+save_list = []
+sequences = recursion(4, 'kevin', a, [], save_list)
 
-# recursion(4, 'kevin', a, [])
+for sequence in sequences:
+    print(sequence)
 
 # recursion('thumbs', possible_english_words, [])
-ranked_words = rank_words('knfd', a)
-print(ranked_words)
-delete_word_from_dict('side', ranked_words)
+# ranked_words = rank_words('knfd', a)
+# print(ranked_words)
+# delete_word_from_dict('side', ranked_words)
 # delete_word_from_dict('emote', ranked_words)
-print(ranked_words)
-print(sort_rank_from_dict(ranked_words))
+# print(ranked_words)
+# print(sort_rank_from_dict(ranked_words))
