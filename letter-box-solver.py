@@ -1,11 +1,16 @@
 import logging
 from operator import itemgetter
+import random
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 # user input of possible letters
 sides = ["pal", 'ons','uti', 'dry']
 number_of_word_to_solve_in = 4
+# user can enter a possible starting word and see if it can be solved from that
+# left empty, we will use the best five starting words
+starter_word = 'supinator'
+shuffle_final_sequences = False
 
 def load_words():
     with open('curated_words.txt') as word_file:
@@ -173,34 +178,16 @@ def get_unmatched_sequence_letters(match_letter_list: dict, sequnece: list) -> d
     remainder = "".join(mismatch)
     return get_letters_in_word(remainder)
 
-## DRIVER CODE ##
+## TEST DRIVER CODE ##
 # tart_word = 'kevin'
 # match_letters = get_letters_in_word('poekn')
 # word_bank = ["kevin", 'niakds', 'sjkasdjf', 'side', 'emote', 'elotts', 'side']
-# 
 # word_bank = rank_and_sort_words(match_letters, word_bank)
 # get_unmatched_sequence_letters(match_letters, word_bank)
 # for word in word_bank:
 # find_all_sequences_recursion(5, match_letters, start_word, word_bank, [], sequences)
 
 ## DRIVER CODE ##
-
-# match_letters = get_letters_in_word(possible_letters)
-# logging.info(rank_and_sort_words(match_letters, possible_english_words, []))
-# ranks = rank_and_sort_words(match_letters, possible_english_words, [])
-# new_list = [x['word'] for x in ranks if x['word'][0] == start_word[-1]]
-# print(new_list)
-# preferred_letters = get_unmatched_sequence_letters(match_letters, ["supinator"])
-# print(preferred_letters)
-# ranks = rank_and_sort_words(match_letters, possible_english_words, preferred_letters.keys())
-# new_list = [x['word'] for x in ranks if x['word'][0] == start_word[-1]]
-# print(new_list)
-# ranks = rank_and_sort_words(match_letters, possible_english_words, ["y"])
-# new_list = [x['word'] for x in ranks if x['word'][0] == start_word[-1]]
-# print(new_list)
-
-## DRIVER CODE ##
-sequences = []
 match_letters = "".join(sides)
 match_letter_list = get_letters_in_word(match_letters)
 
@@ -208,24 +195,28 @@ english_words = load_words()
 possible_english_words = FindPossibleWordsFromDict(english_words, match_letter_list)
 possible_english_words = RemoveImpossibleWordsbySide(possible_english_words, sides)
 
-find_all_sequences_recursion(max_chain_words=number_of_word_to_solve_in, 
-                             match_letters=match_letters, 
-                             start_word="supinator", 
-                             input_list=possible_english_words, 
-                             chain_list=[], 
-                             sequences=sequences)
-
-if sequences == []:
-    logger.info("no sequences found that has all match_letters")
+# get top ten words
+starter_words = []
+if starter_word == '':
+    starter_words = rank_and_sort_words(match_letter_list, possible_english_words, [])[:5]
 else:
-    logger.info("Sequnces found:")
-    for sequence in sequences:
-        logger.info(sequence)
+    starter_words.append({"word": starter_word})
 
-# recursion('thumbs', possible_english_words, [])
-# ranked_words = rank_words('knfd', a)
-# print(ranked_words)
-# delete_word_from_dict('side', ranked_words)
-# delete_word_from_dict('emote', ranked_words)
-# print(ranked_words)
-# print(sort_rank_from_dict(ranked_words))
+for starter_word in starter_words:
+    sequences = []
+    word_list = possible_english_words[:]
+    find_all_sequences_recursion(max_chain_words=number_of_word_to_solve_in, 
+                                match_letters=match_letters, 
+                                start_word=starter_word['word'], 
+                                input_list=word_list, 
+                                chain_list=[], 
+                                sequences=sequences)
+
+    if sequences == []:
+        logger.info(f"no sequences found that has all match_letters for starter word: {starter_word}")
+    else:
+        logger.info(f"Showing top 100 sequnces found for starter_word: {starter_word} ({len(sequences)})")
+        if (shuffle_final_sequences): 
+            random.shuffle(sequences)
+        for sequence in sequences[:100]:
+            logger.info(sequence)
