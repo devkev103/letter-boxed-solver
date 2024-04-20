@@ -1,4 +1,4 @@
-with open('invalid-words.txt') as word_file:
+with open('invalid_words.txt') as word_file:
     invalid_words = sorted(set(word_file.read().split()))
 
 with open('words_alpha.txt') as word_file:

@@ -1,15 +1,19 @@
 import logging
 from operator import itemgetter
-import random
+import random, sys
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+# sys.setrecursionlimit(1500)
 
-# user input of possible letters
-sides = ["pal", 'ons','uti', 'dry']
-number_of_word_to_solve_in = 4
+sides = ["ecf", 'nda','itr', 'blu'] # provided by puzzle; user input of possible letters
+number_of_word_to_solve_in = 5 # provided by puzzle; 
+
 # user can enter a possible starting word and see if it can be solved from that
-# left empty, we will use the best five starting words
-starter_word = 'supinator'
+# left empty, we will use the top_x_words value
+starter_word = ''
+top_x_words = 1
+
+output_sequneces_to_file = False # helpful for debugging
 shuffle_final_sequences = False
 
 def load_words():
@@ -23,7 +27,7 @@ def get_letters_in_word(word: str) -> dict:
         letter_dict[char]=word.count(char)
     return letter_dict
 
-def IsWordPossible(word: str, possible_letter_list: dict):
+def is_word_possible(word: str, possible_letter_list: dict):
     is_word_possible = True
 
     if(len(word) <= 2):
@@ -51,11 +55,11 @@ def IsWordPossible(word: str, possible_letter_list: dict):
 
     return is_word_possible
 
-def FindPossibleWordsFromDict(dictionary, possible_letter_list: dict):
+def find_possible_words_from_english_dictionary(dictionary, possible_letter_list: dict):
     possible_english_words = []
     
     for word in dictionary:
-        if (IsWordPossible(word, possible_letter_list)):
+        if (is_word_possible(word, possible_letter_list)):
             logging.debug(f"The word is possible: {word}")
             possible_english_words.append(word)
         # else:
@@ -64,7 +68,7 @@ def FindPossibleWordsFromDict(dictionary, possible_letter_list: dict):
     logging.debug(possible_english_words)
     return possible_english_words
 
-def IsWordPossibleSide(word: str, side: str) -> bool:
+def is_word_possible_side(word: str, side: str) -> bool:
     logging.debug(f"The word is {word} and side is {side}")
     for i in range(0, len(word) - 1):
         current_letter = word[i]
@@ -75,10 +79,10 @@ def IsWordPossibleSide(word: str, side: str) -> bool:
             return False
     return True
 
-def RemoveImpossibleWordsbySide(words: str, sides: str) -> list:
+def remove_impossible_words_by_side(words: str, sides: str) -> list:
     for word in reversed(words):
         for side in sides:
-            if(not IsWordPossibleSide(word, side)): 
+            if(not is_word_possible_side(word, side)): 
                 logging.debug(f"remove {word}")
                 possible_english_words.remove(word)
                 break
@@ -89,10 +93,14 @@ def find_all_sequences_recursion(max_chain_words: int, match_letters: dict, star
     if input_list == []:
         return
     
+    # if start_word in chain_list:
+        # logger.debug(f"start_word is already in chain_list: {start_word}")
+        # return
+
     logger.debug(f"removing start_word: {start_word}")
     if start_word in input_list:
         input_list.remove(start_word)
-
+  
     logger.debug(f"appending start_word to chain_list: {start_word}")
     chain_list.append(start_word)
 
@@ -115,11 +123,10 @@ def find_all_sequences_recursion(max_chain_words: int, match_letters: dict, star
     
     # find all matches with the last letter of start_word (start_word[-1])
     # and the first letter of the remainder input_list (x['word'][0])
-    # new_list = [x for x in word_bank if x['word'][0]== start_word[-1]]
     preferred_letters = get_unmatched_sequence_letters(get_letters_in_word(match_letters), chain_list)
     ranks = rank_and_sort_words(match_letters, possible_english_words, preferred_letters.keys())
     new_list = [x['word'] for x in ranks if x['word'][0] == start_word[-1]]
-    # new_list = [x for x in input_list if x[0]== start_word[-1]]
+    # new_list.remove(start_word)
     logger.debug(f"new_list: {new_list}")
 
     # no more match end to start letter matches
@@ -192,16 +199,17 @@ match_letters = "".join(sides)
 match_letter_list = get_letters_in_word(match_letters)
 
 english_words = load_words()
-possible_english_words = FindPossibleWordsFromDict(english_words, match_letter_list)
-possible_english_words = RemoveImpossibleWordsbySide(possible_english_words, sides)
+possible_english_words = find_possible_words_from_english_dictionary(english_words, match_letter_list)
+possible_english_words = remove_impossible_words_by_side(possible_english_words, sides)
 
-# get top ten words
+# either use user inputted word or find top words
 starter_words = []
 if starter_word == '':
-    starter_words = rank_and_sort_words(match_letter_list, possible_english_words, [])[:5]
+    starter_words = rank_and_sort_words(match_letter_list, possible_english_words, [])[:top_x_words]
 else:
     starter_words.append({"word": starter_word})
 
+# using the starter_words gathered above, loop through and solve the sequence 
 for starter_word in starter_words:
     sequences = []
     word_list = possible_english_words[:]
@@ -212,10 +220,18 @@ for starter_word in starter_words:
                                 chain_list=[], 
                                 sequences=sequences)
 
+    # print sequences
     if sequences == []:
         logger.info(f"no sequences found that has all match_letters for starter word: {starter_word}")
     else:
         logger.info(f"Showing top 100 sequnces found for starter_word: {starter_word} ({len(sequences)})")
+        if output_sequneces_to_file:
+            f  = open(f"{starter_word['word']}{len(sequences)}.txt", "w")
+            for sequence in sequences:
+                for word in sequence:
+                    f.write("".join(f"{word}->"))
+                f.write("\n")
+            f.close()
         if (shuffle_final_sequences): 
             random.shuffle(sequences)
         for sequence in sequences[:100]:
