@@ -1,6 +1,6 @@
-# Letter Box Solver #
+# Letter Boxed Solver #
 
-This program solves [Letter Boxed](https://www.nytimes.com/puzzles/letter-boxed)
+This program solves NYT's [Letter Boxed](https://www.nytimes.com/puzzles/letter-boxed)
 
 `words_alpha.txt` came from [this](https://github.com/dwyl/english-words/tree/master?tab=readme-ov-file) repo.
 
@@ -8,7 +8,7 @@ This program solves [Letter Boxed](https://www.nytimes.com/puzzles/letter-boxed)
 
 1. Execute `remove_word_from_dictionary.py`
    1. This generates `curated_words.txt` by removing invalid words from `words_alpha.txt`
-2. Execute `letter_box_solver.py` with user input
+2. Execute `letter_boxed_solver.py` with user input
 
 ## Known Issues ##
 
