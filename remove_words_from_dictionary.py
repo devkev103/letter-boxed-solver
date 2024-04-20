@@ -8,6 +8,7 @@ for word in invalid_words:
     if word in valid_words:
         valid_words.remove(word)
 
+# remove words with length two or less
 for word in sorted(valid_words):
     if len(word) <= 2:
         valid_words.remove(word)
