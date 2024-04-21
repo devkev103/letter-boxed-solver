@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 # sys.setrecursionlimit(1500)
 
-sides = ["ecf", 'nda','itr', 'blu'] # provided by puzzle; user input of possible letters
+sides = ["cmp", 'tho','svu', 'air'] # provided by puzzle; user input of possible letters
 number_of_word_to_solve_in = 5 # provided by puzzle; 
 
 # user can enter a possible starting word and see if it can be solved from that
@@ -94,8 +94,10 @@ def find_all_sequences_recursion(max_chain_words: int, match_letters: dict, star
         return
     
     # if start_word in chain_list:
-        # logger.debug(f"start_word is already in chain_list: {start_word}")
-        # return
+        # logger.info(f"start_word is already in chain_list: {start_word}")
+        # if start_word in input_list:
+            # input_list.remove(start_word)
+            # return
 
     logger.debug(f"removing start_word: {start_word}")
     if start_word in input_list:
@@ -142,9 +144,10 @@ def find_all_sequences_recursion(max_chain_words: int, match_letters: dict, star
 
     for word in new_list:
         logger.debug(f"recusion with {word}, input_list: {input_list}")
-        find_all_sequences_recursion(max_chain_words, match_letters, word, input_list, chain_list, sequences)
-        if len(chain_list) > 0:
-            chain_list.pop() # remove last word in chain as that word is now done.
+        if word not in chain_list:
+            find_all_sequences_recursion(max_chain_words, match_letters, word, input_list, chain_list, sequences)
+            if len(chain_list) > 0:
+                chain_list.pop() # remove last word in chain as that word is now done.
 
     return
 
@@ -208,6 +211,8 @@ if starter_word == '':
     starter_words = rank_and_sort_words(match_letter_list, possible_english_words, [])[:top_x_words]
 else:
     starter_words.append({"word": starter_word})
+
+logger.info(starter_words)
 
 # using the starter_words gathered above, loop through and solve the sequence 
 for starter_word in starter_words:
